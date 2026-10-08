@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Gym.Views.Home
+namespace Gym.Controllers
 {
     public class PlansController : Controller
     {
@@ -31,7 +31,7 @@ namespace Gym.Views.Home
                 return RedirectToAction(nameof(Index));
             }
 
-            return View();
+            return View(plan);
         }
     }
 
