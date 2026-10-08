@@ -1,8 +1,8 @@
-﻿using Gym.Data.Contexts;
+﻿using Gym.Presentation.Data.Contexts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace Gym.Controllers
+namespace Gym.Presentation.Controllers
 {
     public class PlansController : Controller
     {

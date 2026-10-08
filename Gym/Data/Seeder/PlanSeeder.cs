@@ -1,8 +1,8 @@
-﻿using Gym.Data.Contexts;
-using Gym.Models;
+﻿using Gym.Presentation.Data.Contexts;
+using Gym.Presentation.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Gym.Data.Seeder
+namespace Gym.Presentation.Data.Seeder
 {
     internal static class PlanSeeder
     {

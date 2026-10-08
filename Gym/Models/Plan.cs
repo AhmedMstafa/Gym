@@ -1,4 +1,4 @@
-﻿namespace Gym.Models
+﻿namespace Gym.Presentation.Models
 {
     public class Plan
     {
