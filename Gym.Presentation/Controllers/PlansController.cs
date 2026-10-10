@@ -7,13 +7,18 @@ namespace Gym.Presentation.Controllers
 {
     public class PlansController : Controller
     {
-        public IPlanRepository PlanRepository = new PlanRepository();
+        private readonly IPlanRepository _PlanRepository;
+
+        public PlansController(IPlanRepository planRepository)
+        {
+            _PlanRepository = planRepository;
+        }
         public async Task<IActionResult> Index()
         {
 
 
 
-            var plans = await PlanRepository.GetAllAsync();
+            var plans = await _PlanRepository.GetAllAsync();
             return View(plans);
         }
 
@@ -25,7 +30,7 @@ namespace Gym.Presentation.Controllers
                 return NotFound();
             }
 
-            var plan = await PlanRepository.GetPlanByIdAsync(id);
+            var plan = await _PlanRepository.GetPlanByIdAsync(id);
 
             if(plan is null )
             {
