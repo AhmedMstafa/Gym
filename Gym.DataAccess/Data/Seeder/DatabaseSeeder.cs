@@ -1,4 +1,4 @@
-﻿namespace Gym.Presentation.Data.Seeder
+﻿namespace Gym.DataAccess.Data.Seeder
 {
     public static class DatabaseSeeder
     {

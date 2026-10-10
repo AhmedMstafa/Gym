@@ -1,4 +1,5 @@
-﻿using Gym.Presentation.Data.Contexts;
+﻿using Gym.DataAccess.Data.Contexts;
+using Gym.DataAccess.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,13 +7,13 @@ namespace Gym.Presentation.Controllers
 {
     public class PlansController : Controller
     {
-        public GymDbContext Context = new GymDbContext();
+        public IPlanRepository PlanRepository = new PlanRepository();
         public async Task<IActionResult> Index()
         {
 
 
 
-            var plans = await Context.Plans.ToListAsync();
+            var plans = await PlanRepository.GetAllAsync();
             return View(plans);
         }
 
@@ -24,7 +25,7 @@ namespace Gym.Presentation.Controllers
                 return NotFound();
             }
 
-            var plan = await Context.Plans.FirstOrDefaultAsync(p => p.Id == id);
+            var plan = await PlanRepository.GetPlanByIdAsync(id);
 
             if(plan is null )
             {

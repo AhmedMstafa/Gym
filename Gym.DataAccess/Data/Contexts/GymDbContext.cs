@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Gym.Presentation.Models;
+using Gym.DataAccess.Models;
 
-namespace Gym.Presentation.Data.Contexts
+namespace Gym.DataAccess.Data.Contexts
 {
     public class GymDbContext : DbContext
     {

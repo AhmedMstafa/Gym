@@ -1,8 +1,8 @@
-﻿using Gym.Presentation.Models;
+﻿using Gym.DataAccess.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Gym.Presentation.Data.Configuration
+namespace Gym.DataAccess.Data.Configuration
 {
     public class PlanConfiguration : IEntityTypeConfiguration<Plan>
     {
