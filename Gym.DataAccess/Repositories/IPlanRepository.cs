@@ -1,4 +1,4 @@
-﻿using Gym.DataAccess.Models;
+﻿using Gym.DataAccess.Entities;
 
 namespace Gym.DataAccess.Repositories
 {

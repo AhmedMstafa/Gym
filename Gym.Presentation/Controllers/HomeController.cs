@@ -1,4 +1,4 @@
-using Gym.DataAccess.Models;
+using Gym.DataAccess.Entities;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 

@@ -1,13 +1,12 @@
 ﻿using Gym.DataAccess.Data.Contexts;
-using Gym.DataAccess.Models;
+using Gym.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Gym.DataAccess.Repositories
 {
-    public class PlanRepository : IPlanRepository
+    public class PlanRepository(GymDbContext dbContext) : IPlanRepository
         {
 
-        public GymDbContext dbContext = new GymDbContext();
         public async Task<IEnumerable<Plan>> GetAllAsync()
             => await dbContext.Plans.ToListAsync();
 

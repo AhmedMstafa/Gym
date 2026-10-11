@@ -1,12 +1,12 @@
 ﻿using Gym.DataAccess.Data.Contexts;
-using Gym.DataAccess.Models;
+using Gym.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Gym.DataAccess.Data.Seeder
 {
     internal static class PlanSeeder
     {
-        public static async Task SeedAsync( GymDbContext dbContext)
+        public static async Task SeedAsync(GymDbContext dbContext)
         {
 
            bool hasPlans = await dbContext.Plans.AnyAsync();

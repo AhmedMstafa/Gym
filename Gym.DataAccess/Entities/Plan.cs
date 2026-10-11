@@ -1,9 +1,9 @@
-﻿namespace Gym.DataAccess.Models
-{
-    public class Plan
-    {
-        public int Id { get; set; }
+﻿using Gym.DataAccess.Entities;
 
+namespace Gym.DataAccess.Entities
+{
+    public class Plan : BaseEntity
+    {
         public string Name { get; set; } = default!;
 
         public string Description { get; set; } = default!;
@@ -14,8 +14,5 @@
 
         public bool IsActive { get; set; }
 
-        public DateTime CreatedAt { get; set; }
-
-        public DateTime? LastUpdatedAt { get; set; }
     }
 }

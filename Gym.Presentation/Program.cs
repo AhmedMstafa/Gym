@@ -1,4 +1,5 @@
 using Gym.DataAccess.Data.Contexts;
+using Gym.DataAccess.Interceptors;
 using Gym.DataAccess.Data.Seeder;
 using Gym.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -9,9 +10,12 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddScoped<IPlanRepository, PlanRepository>();
 
-builder.Services.AddDbContext<GymDbContext>(options =>
+builder.Services.AddSingleton<AuditEntitiesInterceptor>();
+
+builder.Services.AddDbContext<GymDbContext>((sp,options) =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.AddInterceptors(sp.GetRequiredService<AuditEntitiesInterceptor>());
 });
 
 var app = builder.Build();
