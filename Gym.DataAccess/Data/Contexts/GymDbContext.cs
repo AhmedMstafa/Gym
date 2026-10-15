@@ -12,15 +12,6 @@ namespace Gym.DataAccess.Data.Contexts
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(GymDbContext).Assembly);
 
-            modelBuilder.Entity<User>()
-                .HasDiscriminator<string>("UserType")
-                .HasValue<User>("User")
-                .HasValue<Member>("Member");
-
-            modelBuilder.Entity<User>()
-                .HasQueryFilter(u => !u.IsDeleted);
-
-
         }
 
         public DbSet<Plan> Plans { get; set; } 
@@ -28,6 +19,9 @@ namespace Gym.DataAccess.Data.Contexts
 
         public DbSet<User> Users { get;  set; }
 
+        public DbSet<Member> Members { get; set; }
+
+        public DbSet<Trainer> Trainers { get; set; }
         public DbSet<Session> Sessions { get;  set; }
 
         public DbSet<MemberShip> MemberShips { get;  set; }

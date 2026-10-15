@@ -1,14 +1,18 @@
-﻿using Gym.DataAccess.Entities;
+using Gym.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Gym.DataAccess.Data.Configration
 {
-    public class UserConfigrations<T> : IEntityTypeConfiguration<T> where T : User
+    public class UserConfigrations : IEntityTypeConfiguration<User>
     {
-        public virtual void Configure(EntityTypeBuilder<T> builder)
+        public virtual void Configure(EntityTypeBuilder<User> builder)
         {
-            
+            builder.HasDiscriminator<string>("UserType")
+               .HasValue<Member>("Member")
+               .HasValue<Trainer>("Trainer");
+
+            builder.Property(u => u.Gender).HasConversion<string>();
 
             builder.Property(u => u.Name)
                 .HasMaxLength(100);
@@ -41,6 +45,9 @@ namespace Gym.DataAccess.Data.Configration
 
 
             builder.ToTable(t => t.HasCheckConstraint("CK_User_Phone", "(LEN(Phone) = 11 AND Phone LIKE '01[0125]%')")) ;
+
+
+            builder.HasQueryFilter(u => !u.IsDeleted);
 
         }
     }

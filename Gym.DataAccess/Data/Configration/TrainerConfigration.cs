@@ -1,20 +1,23 @@
 ﻿using Gym.DataAccess.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Gym.DataAccess.Data.Configration
 {
-    public class TrainerConfigration : UserConfigrations<Trainer>
+    public class TrainerConfigration : IEntityTypeConfiguration<Trainer>
     {
-        public override void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<Trainer> builder)
+        public  void Configure(EntityTypeBuilder<Trainer> builder)
         {
-            base.Configure(builder);
             builder.Property(t => t.Speciality)
                    .HasConversion<string>()
                    .HasMaxLength(50);
 
-            
+            //builder.HasQueryFilter(u => !u.IsDeleted);
         }
+
+       
     }
 }

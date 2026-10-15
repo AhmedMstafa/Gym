@@ -11,6 +11,8 @@ namespace Gym.DataAccess.Entities
 
         public decimal Weight { get; set; } 
 
+        public string? Notes { get; set; }
+
         public BloodType BloodType { get; set; }
 
         public int MemberId { get; set; }

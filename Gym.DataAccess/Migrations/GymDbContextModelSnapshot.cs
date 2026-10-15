@@ -59,7 +59,8 @@ namespace Gym.DataAccess.Migrations
                     b.HasIndex("MemberId");
 
                     b.HasIndex("SessionId", "MemberId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("Bookings");
                 });
@@ -121,6 +122,9 @@ namespace Gym.DataAccess.Migrations
 
                     b.Property<int>("MemberId")
                         .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -313,8 +317,9 @@ namespace Gym.DataAccess.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("Gender")
-                        .HasColumnType("int");
+                    b.Property<string>("Gender")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -339,7 +344,16 @@ namespace Gym.DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Phone")
+                        .IsUnique();
+
+                    b.ToTable("Users", t =>
+                        {
+                            t.HasCheckConstraint("CK_User_Phone", "(LEN(Phone) = 11 AND Phone LIKE '01[0125]%')");
+                        });
 
                     b.HasDiscriminator<string>("UserType").HasValue("User");
 
@@ -357,13 +371,7 @@ namespace Gym.DataAccess.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.HasIndex("Phone")
-                        .IsUnique();
-
-                    b.ToTable("Users", t =>
+                    b.ToTable(t =>
                         {
                             t.HasCheckConstraint("CK_User_Phone", "(LEN(Phone) = 11 AND Phone LIKE '01[0125]%')");
                         });
@@ -383,13 +391,7 @@ namespace Gym.DataAccess.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
-
-                    b.HasIndex("Phone")
-                        .IsUnique();
-
-                    b.ToTable("Users", t =>
+                    b.ToTable(t =>
                         {
                             t.HasCheckConstraint("CK_User_Phone", "(LEN(Phone) = 11 AND Phone LIKE '01[0125]%')");
                         });
@@ -465,76 +467,35 @@ namespace Gym.DataAccess.Migrations
                     b.Navigation("Trainer");
                 });
 
-            modelBuilder.Entity("Gym.DataAccess.Entities.Member", b =>
+            modelBuilder.Entity("Gym.DataAccess.Entities.User", b =>
                 {
                     b.OwnsOne("Gym.DataAccess.Entities.ValueObjects.Address", "Address", b1 =>
                         {
-                            b1.Property<int>("MemberId")
+                            b1.Property<int>("UserId")
                                 .HasColumnType("int");
 
                             b1.Property<int>("BuildingNumber")
-                                .ValueGeneratedOnUpdateSometimes()
                                 .HasColumnType("int")
                                 .HasColumnName("BuildingNumber");
 
                             b1.Property<string>("City")
                                 .IsRequired()
-                                .ValueGeneratedOnUpdateSometimes()
                                 .HasMaxLength(100)
                                 .HasColumnType("nvarchar(100)")
                                 .HasColumnName("City");
 
                             b1.Property<string>("Street")
                                 .IsRequired()
-                                .ValueGeneratedOnUpdateSometimes()
                                 .HasMaxLength(200)
                                 .HasColumnType("nvarchar(200)")
                                 .HasColumnName("Street");
 
-                            b1.HasKey("MemberId");
+                            b1.HasKey("UserId");
 
                             b1.ToTable("Users");
 
                             b1.WithOwner()
-                                .HasForeignKey("MemberId");
-                        });
-
-                    b.Navigation("Address")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Gym.DataAccess.Entities.Trainer", b =>
-                {
-                    b.OwnsOne("Gym.DataAccess.Entities.ValueObjects.Address", "Address", b1 =>
-                        {
-                            b1.Property<int>("TrainerId")
-                                .HasColumnType("int");
-
-                            b1.Property<int>("BuildingNumber")
-                                .ValueGeneratedOnUpdateSometimes()
-                                .HasColumnType("int")
-                                .HasColumnName("BuildingNumber");
-
-                            b1.Property<string>("City")
-                                .IsRequired()
-                                .ValueGeneratedOnUpdateSometimes()
-                                .HasMaxLength(100)
-                                .HasColumnType("nvarchar(100)")
-                                .HasColumnName("City");
-
-                            b1.Property<string>("Street")
-                                .IsRequired()
-                                .ValueGeneratedOnUpdateSometimes()
-                                .HasMaxLength(200)
-                                .HasColumnType("nvarchar(200)")
-                                .HasColumnName("Street");
-
-                            b1.HasKey("TrainerId");
-
-                            b1.ToTable("Users");
-
-                            b1.WithOwner()
-                                .HasForeignKey("TrainerId");
+                                .HasForeignKey("UserId");
                         });
 
                     b.Navigation("Address")

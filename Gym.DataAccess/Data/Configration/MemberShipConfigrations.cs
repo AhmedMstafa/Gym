@@ -14,12 +14,6 @@ namespace Gym.DataAccess.Data.Configration
                 t.HasCheckConstraint("CK_MemberShip_StartDate_EndDate", "[StartDate] < [EndDate]");
             });
 
-            //builder.HasIndex(m =>new
-            //{
-            //    m.MemberId,
-            //    m.PlanId,
-            //    m.StartDate,
-            //}).IsUnique();
 
             builder.HasQueryFilter(m => m.DeletedAt == null);
         }

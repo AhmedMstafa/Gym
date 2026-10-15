@@ -30,7 +30,7 @@ namespace Gym.Presentation.Controllers
                 return NotFound();
             }
 
-            var plan = await _PlanRepository.GetPlanByIdAsync(id);
+            var plan = await _PlanRepository.GetByIdAsync(id);
 
             if(plan is null )
             {

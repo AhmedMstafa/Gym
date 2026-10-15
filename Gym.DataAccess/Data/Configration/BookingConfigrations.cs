@@ -17,7 +17,8 @@ namespace Gym.DataAccess.Data.Configration
             {
                 x.SessionId,
                 x.MemberId
-            }).IsUnique();
+            }).IsUnique()
+            .HasFilter("[IsDeleted] = 0");
 
           
            builder.HasOne(b => b.Member)
@@ -25,6 +26,7 @@ namespace Gym.DataAccess.Data.Configration
                 .HasForeignKey(b => b.MemberId)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            builder.HasQueryFilter(b => !b.IsDeleted);
         }
     }
 }
