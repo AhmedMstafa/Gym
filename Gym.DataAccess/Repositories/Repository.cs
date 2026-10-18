@@ -16,12 +16,21 @@ namespace Gym.DataAccess.Repositories
         public async Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
         => await _dbset.AnyAsync(predicate, cancellationToken);
 
-        public async Task<IReadOnlyList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
-        => await _dbset.Where(predicate).ToListAsync(cancellationToken);
+        public async Task<TEntity?> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+        => await _dbset.FirstOrDefaultAsync(predicate,cancellationToken);
 
 
-        public async Task<TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
-        => await _dbset.FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+        public async Task<TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken = default,bool trackChanges = true, Expression<Func<TEntity, bool>>? predicate = null, params Expression<Func<TEntity, object>>[] includes)
+        {
+            var query = ApplayIncludes(_dbset.AsQueryable(), includes);
+            if (!trackChanges)
+                 query =  query.AsNoTracking();
+
+            if (predicate != null)
+                query = query.Where(predicate);
+
+            return await query.FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+        }
 
         public async Task<TEntity?> GetByIdIncludingDeletedAsync(int id, CancellationToken cancellationToken = default)
         => await _dbset.IgnoreQueryFilters().FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
@@ -43,5 +52,15 @@ namespace Gym.DataAccess.Repositories
 
       public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         => await _dbContext.SaveChangesAsync(cancellationToken);
+
+        private static IQueryable<TEntity> ApplayIncludes(IQueryable<TEntity> query, IEnumerable<Expression<Func<TEntity, object>>> includes)
+        {
+            foreach (var  include in includes)
+            {
+                query.Include(include);
+
+            }
+                return query;
+        }
     }
 }

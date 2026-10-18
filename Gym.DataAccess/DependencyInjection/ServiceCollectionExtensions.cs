@@ -19,6 +19,7 @@ public static class ServiceCollectionExtensions
             options.AddInterceptors(sp.GetRequiredService<AuditEntitiesInterceptor>());
         });
 
+        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IPlanRepository, PlanRepository>();
 
         services.AddScoped<IMemberRepository, MemberRepository>();

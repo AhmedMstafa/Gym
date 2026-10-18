@@ -1,8 +1,6 @@
 using Gym.Business.Common;
+using Gym.Business.ViewModels;
 using Gym.Business.ViewModels.Members;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Gym.Business.Services
 {
@@ -10,5 +8,17 @@ namespace Gym.Business.Services
     {
         Task<IEnumerable<MemberIndexViewModel>> GetAllAsync(CancellationToken cancellationToken = default);
         Task<Result> CreateAsync(CreateMemberViewModel model, CancellationToken cancellationToken = default);
+
+        Task<MemberDetailsViewModel?> GetDetailsAsync(int id, CancellationToken cancellationToken = default);
+
+        Task<HealthRecordViewModel?> GetHealthRecordAsync(int id, CancellationToken cancellationToken = default);
+
+        Task<EditMemberViewModel?> GetForUpdateAsync(int id, CancellationToken cancellationToken = default);
+
+        Task<Result> UpdateAsync(int id,EditMemberViewModel model, CancellationToken cancellationToken = default);
+
+        Task<Result> DeleteAsync(int id, CancellationToken cancellationToken = default);
+
+
     }
 }

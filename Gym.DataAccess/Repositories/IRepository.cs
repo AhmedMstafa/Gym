@@ -7,9 +7,9 @@ namespace Gym.DataAccess.Repositories
     {
         Task <IReadOnlyList<TEntity>> GetAllAsync(CancellationToken cancellationToken = default);
 
-        Task <TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+        Task <TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken = default, bool trackChanges = true, Expression<Func<TEntity, bool>>? predicate = null, params Expression<Func<TEntity, object>>[] includes);
         
-        Task<IReadOnlyList<TEntity>> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
+        Task<TEntity?> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
         
         Task<bool> ExistsAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
 
@@ -19,7 +19,6 @@ namespace Gym.DataAccess.Repositories
         Task SoftDeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-
 
     }
 }

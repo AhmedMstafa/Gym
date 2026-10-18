@@ -1,18 +1,14 @@
 using Gym.Business.Common;
+using Gym.Business.ViewModels;
 using Gym.Business.ViewModels.Members;
 using Gym.DataAccess.Entities;
 using Gym.DataAccess.Entities.ValueObjects;
 using Gym.DataAccess.Enums;
 using Gym.DataAccess.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Gym.Business.Services
 {
-    internal class MemberService(IMemberRepository memberRepo) : IMemberServices
+    internal class MemberService(IMemberRepository memberRepo, IRepository<HealthRecord> healthReordRepo) : IMemberServices
     {
         public async Task<IEnumerable<MemberIndexViewModel>> GetAllAsync(CancellationToken cancellation = default)
         {
@@ -38,15 +34,18 @@ namespace Gym.Business.Services
             var dateofbirth = model.DateOfBirth;
             var joindate = model.JoinDate;
 
-            if (await memberRepo.ExistsAsync(m => m.Email == email, cancellationToken))
+            if (await memberRepo.IsEmailTakenAsync(email, cancellationToken: cancellationToken))
             {
                 return Result.Failure("Email", "This email is already registered.");
             }
 
-            if (await memberRepo.ExistsAsync(m => m.Phone == phone, cancellationToken))
+
+            if (await memberRepo.IsPhoneTakenAsync(phone,  cancellationToken: cancellationToken))
             {
                 return Result.Failure("Phone", "This phone number is already registered.");
             }
+
+
 
             if (!Enum.TryParse(model.Gender, true, out Gender gender))
             {
@@ -92,6 +91,121 @@ namespace Gym.Business.Services
                 var errorMsg = ex.InnerException?.Message ?? ex.Message;
                 return Result.Failure(string.Empty, $"Database Error: {errorMsg}");
             }
+        }
+
+        public async Task<MemberDetailsViewModel?> GetDetailsAsync(int id, CancellationToken cancellationToken = default)
+        {
+            var member = await memberRepo.GetWithMembershipAsync(id: id, cancellationToken: cancellationToken);
+
+
+            if (member is null) return null;
+
+            var today = DateTime.Today;
+
+            var activeMemberShip = member.MemberShips.FirstOrDefault(m => m.EndDate >= today);
+
+            return new MemberDetailsViewModel
+            {
+                Id = member.Id,
+                Name = member.Name,
+                Photo = member.Photo,
+                Email = member.Email,
+                Phone = member.Phone,
+                Gender = member.Gender.ToString(),
+                DateOfBirth = member.DateOfBirth.ToShortDateString(),
+                Address = $"{member.Address.BuildingNumber} - {member.Address.Street} - {member.Address.City}",
+                PlanName = activeMemberShip?.Plan.Name ?? "No Active Plan",
+                MemberShipStartDate = activeMemberShip?.StartDate.ToShortDateString() ?? "-",
+                MemberShipEndDate = activeMemberShip?.EndDate.ToShortDateString() ?? "-"
+            };
+        }
+
+        public async Task<HealthRecordViewModel?> GetHealthRecordAsync(int id, CancellationToken cancellationToken)
+        {
+            var healthRecord = await healthReordRepo.FindAsync(predicate: m => m.MemberId == id, cancellationToken);
+
+            if (healthRecord is null) return null;
+
+
+            return new HealthRecordViewModel
+            {
+                Hight = healthRecord.Hight,
+                Weight = healthRecord.Weight,
+                BloodType = healthRecord.BloodType.ToString(),
+                Notes = healthRecord.Notes
+            };
+        }
+
+        public async Task<EditMemberViewModel?> GetForUpdateAsync(int id, CancellationToken cancellationToken)
+        {
+            var member = await memberRepo.GetByIdAsync(id, cancellationToken);
+
+            if (member is null) return null;
+
+            return new EditMemberViewModel
+            {
+                Name = member.Name,
+                Photo = member.Photo,
+                Phone = member.Phone,
+                Email = member.Email,
+                BuildingNumber = member.Address.BuildingNumber,
+                City = member.Address.City,
+                Street = member.Address.Street
+            };
+        }
+
+        public async Task<Result> UpdateAsync(int id,EditMemberViewModel model, CancellationToken cancellationToken = default)
+        {
+            var member = await memberRepo.GetByIdAsync(id, cancellationToken);
+
+            if (member is null) return Result.Failure("Member Not Found", nameof(id));
+
+            var normalizationEmail = model.Email.Trim().ToLowerInvariant();
+            var normalizationPhone = model.Phone.Trim();
+
+
+            if (await memberRepo.IsEmailTakenAsync(normalizationEmail, id, cancellationToken))
+            {
+                return Result.Failure(nameof(model.Email), "This email is already registered.");
+            }
+            ;
+
+
+            if (await memberRepo.IsPhoneTakenAsync(normalizationPhone, id, cancellationToken))
+            {
+                return Result.Failure(nameof(model.Phone), "This Phone is already registered.");
+            }
+            ;
+
+            member.Email = normalizationEmail;
+            member.Phone = normalizationPhone;
+            member.Address = new Address
+            {
+                BuildingNumber = model.BuildingNumber,
+                Street = model.Street,
+                City = model.City
+            };
+
+            await memberRepo.SaveChangesAsync();
+
+            return Result.Success();
+        }
+
+        public async Task<Result> DeleteAsync(int id, CancellationToken cancellationToken = default)
+        {
+            var member = await memberRepo.GetByIdAsync(id: id, cancellationToken: cancellationToken);
+             
+            if (member is null)
+                return Result.Failure(nameof(id), "Member Not Found");
+
+            if (await memberRepo.HasUpcommingActiveSessionsAsync(id, cancellationToken))
+                return Result.Failure(nameof(id), "Member Has Active Sessions");
+
+            await memberRepo.SoftDeleteAsync(member, cancellationToken);
+
+            await memberRepo.SaveChangesAsync(cancellationToken);
+
+            return Result.Success();
         }
     }
 }

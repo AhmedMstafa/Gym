@@ -1,8 +1,11 @@
 @using Gym.Business.ViewModels.Members
 @using Gym.DataAccess.Enums
 @model CreateMemberViewModel
-
+@{
+    ViewData["Title"] = "Create Member";
+}
 <div class="container">
+    <partial name="_TempDataAlert"/>
     <main role="main" class="pb-3">
 
         <header class="mb-4">
@@ -88,12 +91,12 @@
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label asp-for="HealthRecord.Hight" class="form-label"></label>
-                            <input asp-for="HealthRecord.Hight" class="form-control" />
+                            <input type="number" asp-for="HealthRecord.Hight" class="form-control" />
                             <span asp-validation-for="HealthRecord.Hight" class="text-danger"></span>
                         </div>
                         <div class="col-12 col-md-6">
                             <label asp-for="HealthRecord.Weight" class="form-label"></label>
-                            <input asp-for="HealthRecord.Weight" class="form-control" />
+                            <input type="number" asp-for="HealthRecord.Weight" class="form-control" />
                             <span asp-validation-for="HealthRecord.Weight" class="text-danger"></span>
                         </div>
                         <div class="col-12 col-md-6">
@@ -128,4 +131,5 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+     <partial name="_AlertDismissScript" />
 }
