@@ -10,7 +10,7 @@ namespace Gym.DataAccess.Repositories
         public Task<bool> IsEmailTakenAsync(string normalizedEmail,int ? excludeId = null, CancellationToken cancellationToken = default);
         public Task<bool> IsPhoneTakenAsync(string phone, int? excludeId = null, CancellationToken cancellationToken = default);
 
-        public Task<Member?> GetWithMembershipAsync(int id, CancellationToken cancellationToken = default);
+        public Task<Member?> GetWithActiveMembershipAsync(int id,DateTime today, CancellationToken cancellationToken = default);
 
         public Task<bool> HasUpcommingActiveSessionsAsync(int id, CancellationToken cancellationToken = default); 
 

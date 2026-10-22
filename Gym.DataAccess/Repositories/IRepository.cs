@@ -1,4 +1,4 @@
-﻿using Gym.DataAccess.Entities;
+using Gym.DataAccess.Entities;
 using System.Linq.Expressions;
 
 namespace Gym.DataAccess.Repositories
@@ -7,7 +7,12 @@ namespace Gym.DataAccess.Repositories
     {
         Task <IReadOnlyList<TEntity>> GetAllAsync(CancellationToken cancellationToken = default);
 
-        Task <TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken = default, bool trackChanges = true, Expression<Func<TEntity, bool>>? predicate = null, params Expression<Func<TEntity, object>>[] includes);
+        Task <TEntity?> GetByIdAsync(
+            int id,
+            CancellationToken cancellationToken = default,
+            bool trackChanges = true,
+            Expression<Func<TEntity, bool>>? predicate = null,
+            params Expression<Func<TEntity, object>>[] includes);
         
         Task<TEntity?> FindAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
         

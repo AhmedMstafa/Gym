@@ -1,4 +1,4 @@
-﻿using Gym.DataAccess.Data.Contexts;
+using Gym.DataAccess.Data.Contexts;
 using Gym.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,11 +8,11 @@ namespace Gym.DataAccess.Repositories
     {
         private readonly GymDbContext _DbContext = GymDbContext;
 
-        public Task<Member?> GetWithMembershipAsync(int id, CancellationToken cancellationToken = default)
+        public Task<Member?> GetWithActiveMembershipAsync(int id, DateTime today, CancellationToken cancellationToken = default)
         {
             return _DbContext.Set<Member>()
                 .AsNoTracking()
-                .Include(m => m.MemberShips)
+                .Include(m => m.MemberShips.Where(ms => ms.EndDate >= today))
                 .ThenInclude(ms => ms.Plan)
                 .FirstOrDefaultAsync(m => m.Id == id, cancellationToken);
         }

@@ -5,205 +5,155 @@ using Gym.DataAccess.Entities;
 using Gym.DataAccess.Entities.ValueObjects;
 using Gym.DataAccess.Enums;
 using Gym.DataAccess.Repositories;
+using MapsterMapper;
 
 namespace Gym.Business.Services
 {
-    internal class MemberService(IMemberRepository memberRepo, IRepository<HealthRecord> healthReordRepo) : IMemberServices
+    internal class MemberService(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        IDateTimeProvider dateTimeProvider) : IMemberServices
     {
-        public async Task<IEnumerable<MemberIndexViewModel>> GetAllAsync(CancellationToken cancellation = default)
+        public async Task<Result<IEnumerable<MemberIndexViewModel>>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            var members = await memberRepo.GetAllAsync(cancellation);
-
-            return members.Select(member => new MemberIndexViewModel
-            {
-                Id = member.Id,
-                Name = member.Name,
-                Email = member.Email,
-                Phone = member.Phone,
-                Photo = member.Photo,
-                JoinDate = member.JoinDate,
-                Gender = member.Gender.ToString()
-            });
+            var members = await unitOfWork.Members.GetAllAsync(cancellationToken);
+            var viewModels = mapper.Map<IEnumerable<MemberIndexViewModel>>(members);
+            return Result.Success(viewModels);
         }
 
         public async Task<Result> CreateAsync(CreateMemberViewModel model, CancellationToken cancellationToken = default)
         {
             var email = model.Email.Trim().ToLower();
             var phone = model.Phone.Trim();
-            var name = model.Name.Trim();
-            var dateofbirth = model.DateOfBirth;
-            var joindate = model.JoinDate;
 
-            if (await memberRepo.IsEmailTakenAsync(email, cancellationToken: cancellationToken))
+            if (await unitOfWork.Members.IsEmailTakenAsync(email, cancellationToken: cancellationToken))
             {
                 return Result.Failure("Email", "This email is already registered.");
             }
 
-
-            if (await memberRepo.IsPhoneTakenAsync(phone,  cancellationToken: cancellationToken))
+            if (await unitOfWork.Members.IsPhoneTakenAsync(phone, cancellationToken: cancellationToken))
             {
                 return Result.Failure("Phone", "This phone number is already registered.");
             }
-
-
 
             if (!Enum.TryParse(model.Gender, true, out Gender gender))
             {
                 return Result.Failure("Gender", "Invalid gender selected.");
             }
 
-            if (!Enum.TryParse(model.HealthRecord.BloodType, true, out BloodType bloodtype))
+            if (!Enum.TryParse(model.HealthRecord.BloodType, true, out BloodType bloodType))
             {
                 return Result.Failure("HealthRecord.BloodType", "Invalid blood type selected.");
             }
 
-            var member = new Member
-            {
-                Name = name,
-                Email = email,
-                Phone = phone,
-                JoinDate = joindate,
-                DateOfBirth = DateOnly.FromDateTime(dateofbirth),
-                Gender = gender,
-                Address = new Address
-                {
-                    BuildingNumber = model.BuildingNumber,
-                    City = model.City.Trim(),
-                    Street = model.Street.Trim()
-                },
-                HealthRecord = new HealthRecord
-                {
-                    BloodType = bloodtype,
-                    Hight = model.HealthRecord.Hight,
-                    Weight = model.HealthRecord.Weight,
-                    Notes = model.HealthRecord.Notes
-                }
-            };
+            var member = mapper.Map<Member>(model);
+            member.Gender = gender;
+            member.HealthRecord.BloodType = bloodType;
 
             try
             {
-                await memberRepo.AddAsync(member, cancellationToken);
-                await memberRepo.SaveChangesAsync(cancellationToken);
+                await unitOfWork.Members.AddAsync(member, cancellationToken);
+                await unitOfWork.SaveChangesAsync(cancellationToken);
                 return Result.Success();
             }
             catch (Exception ex)
             {
                 var errorMsg = ex.InnerException?.Message ?? ex.Message;
-                return Result.Failure(string.Empty, $"Database Error: {errorMsg}");
+                return Result.Failure("DatabaseError", $"Database Error: {errorMsg}");
             }
         }
 
-        public async Task<MemberDetailsViewModel?> GetDetailsAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<Result<MemberDetailsViewModel>> GetDetailsAsync(int id, CancellationToken cancellationToken = default)
         {
-            var member = await memberRepo.GetWithMembershipAsync(id: id, cancellationToken: cancellationToken);
+            var today = dateTimeProvider.DateTimeToday;
 
+            var member = await unitOfWork.Members.GetWithActiveMembershipAsync(id: id, today: today, cancellationToken: cancellationToken);
 
-            if (member is null) return null;
+            if (member is null)
+                return Result.Failure<MemberDetailsViewModel>("MemberNotFound", $"Member with ID {id} was not found.");
 
-            var today = DateTime.Today;
-
-            var activeMemberShip = member.MemberShips.FirstOrDefault(m => m.EndDate >= today);
-
-            return new MemberDetailsViewModel
-            {
-                Id = member.Id,
-                Name = member.Name,
-                Photo = member.Photo,
-                Email = member.Email,
-                Phone = member.Phone,
-                Gender = member.Gender.ToString(),
-                DateOfBirth = member.DateOfBirth.ToShortDateString(),
-                Address = $"{member.Address.BuildingNumber} - {member.Address.Street} - {member.Address.City}",
-                PlanName = activeMemberShip?.Plan.Name ?? "No Active Plan",
-                MemberShipStartDate = activeMemberShip?.StartDate.ToShortDateString() ?? "-",
-                MemberShipEndDate = activeMemberShip?.EndDate.ToShortDateString() ?? "-"
-            };
+            var viewModel = mapper.Map<MemberDetailsViewModel>(member);
+            return Result.Success(viewModel);
         }
 
-        public async Task<HealthRecordViewModel?> GetHealthRecordAsync(int id, CancellationToken cancellationToken)
+        public async Task<Result<HealthRecordViewModel>> GetHealthRecordAsync(int id, CancellationToken cancellationToken = default)
         {
-            var healthRecord = await healthReordRepo.FindAsync(predicate: m => m.MemberId == id, cancellationToken);
+            var healthRecord = await unitOfWork.HealthRecords.FindAsync(predicate: m => m.MemberId == id, cancellationToken);
 
-            if (healthRecord is null) return null;
+            if (healthRecord is null)
+                return Result.Failure<HealthRecordViewModel>("HealthRecordNotFound", $"Health record for member ID {id} was not found.");
 
-
-            return new HealthRecordViewModel
-            {
-                Hight = healthRecord.Hight,
-                Weight = healthRecord.Weight,
-                BloodType = healthRecord.BloodType.ToString(),
-                Notes = healthRecord.Notes
-            };
+            var viewModel = mapper.Map<HealthRecordViewModel>(healthRecord);
+            return Result.Success(viewModel);
         }
 
-        public async Task<EditMemberViewModel?> GetForUpdateAsync(int id, CancellationToken cancellationToken)
+        public async Task<Result<EditMemberViewModel>> GetForUpdateAsync(int id, CancellationToken cancellationToken = default)
         {
-            var member = await memberRepo.GetByIdAsync(id, cancellationToken);
+            var member = await unitOfWork.Members.GetByIdAsync(id, cancellationToken);
 
-            if (member is null) return null;
+            if (member is null)
+                return Result.Failure<EditMemberViewModel>("MemberNotFound", $"Member with ID {id} was not found.");
 
-            return new EditMemberViewModel
-            {
-                Name = member.Name,
-                Photo = member.Photo,
-                Phone = member.Phone,
-                Email = member.Email,
-                BuildingNumber = member.Address.BuildingNumber,
-                City = member.Address.City,
-                Street = member.Address.Street
-            };
+            var viewModel = mapper.Map<EditMemberViewModel>(member);
+            return Result.Success(viewModel);
         }
 
-        public async Task<Result> UpdateAsync(int id,EditMemberViewModel model, CancellationToken cancellationToken = default)
+        public async Task<Result> UpdateAsync(int id, EditMemberViewModel model, CancellationToken cancellationToken = default)
         {
-            var member = await memberRepo.GetByIdAsync(id, cancellationToken);
+            var member = await unitOfWork.Members.GetByIdAsync(id, cancellationToken);
 
-            if (member is null) return Result.Failure("Member Not Found", nameof(id));
+            if (member is null)
+                return Result.Failure("MemberNotFound", $"Member with ID {id} was not found.");
 
-            var normalizationEmail = model.Email.Trim().ToLowerInvariant();
-            var normalizationPhone = model.Phone.Trim();
+            if (member.Name != model.Name)
+                return Result.Failure("Name", "Name cannot be changed.");
 
+            var normalizedEmail = model.Email.Trim().ToLowerInvariant();
+            var normalizedPhone = model.Phone.Trim();
 
-            if (await memberRepo.IsEmailTakenAsync(normalizationEmail, id, cancellationToken))
+            if (await unitOfWork.Members.IsEmailTakenAsync(normalizedEmail, id, cancellationToken))
             {
                 return Result.Failure(nameof(model.Email), "This email is already registered.");
             }
-            ;
 
-
-            if (await memberRepo.IsPhoneTakenAsync(normalizationPhone, id, cancellationToken))
+            if (await unitOfWork.Members.IsPhoneTakenAsync(normalizedPhone, id, cancellationToken))
             {
                 return Result.Failure(nameof(model.Phone), "This Phone is already registered.");
             }
-            ;
 
-            member.Email = normalizationEmail;
-            member.Phone = normalizationPhone;
+            member.Email = normalizedEmail;
+            member.Phone = normalizedPhone;
             member.Address = new Address
             {
                 BuildingNumber = model.BuildingNumber,
-                Street = model.Street,
-                City = model.City
+                Street = model.Street.Trim(),
+                City = model.City.Trim()
             };
 
-            await memberRepo.SaveChangesAsync();
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Success();
         }
 
         public async Task<Result> DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
-            var member = await memberRepo.GetByIdAsync(id: id, cancellationToken: cancellationToken);
-             
+            var member = await unitOfWork.Members.GetByIdAsync(id: id, cancellationToken: cancellationToken);
+
             if (member is null)
-                return Result.Failure(nameof(id), "Member Not Found");
+                return Result.Failure("MemberNotFound", $"Member with ID {id} was not found.");
 
-            if (await memberRepo.HasUpcommingActiveSessionsAsync(id, cancellationToken))
-                return Result.Failure(nameof(id), "Member Has Active Sessions");
+            if (await unitOfWork.Bookings.HasUpcommingActiveSessionsAsync(id, dateTimeProvider.UtcNow, cancellationToken))
+                return Result.Failure("ActiveSessions", "Member has upcoming active sessions and cannot be deleted.");
 
-            await memberRepo.SoftDeleteAsync(member, cancellationToken);
+            await unitOfWork.Members.SoftDeleteAsync(member, cancellationToken);
 
-            await memberRepo.SaveChangesAsync(cancellationToken);
+            var healthRecord = await unitOfWork.HealthRecords.FindAsync(h => h.MemberId == id, cancellationToken);
+            if (healthRecord is not null)
+            {
+                await unitOfWork.HealthRecords.SoftDeleteAsync(healthRecord, cancellationToken);
+            }
+
+            await unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Success();
         }

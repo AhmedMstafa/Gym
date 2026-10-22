@@ -1,5 +1,6 @@
-﻿using Gym.DataAccess.Data.Contexts;
+using Gym.DataAccess.Data.Contexts;
 using Gym.DataAccess.Interceptors;
+using Gym.DataAccess.Queries;
 using Gym.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IPlanRepository, PlanRepository>();
 
         services.AddScoped<IMemberRepository, MemberRepository>();
+        services.AddScoped<IBookingRepository, BookingRepository>();
+        services.AddScoped<ITrainerRepository, TrainerRepository>();
+        services.AddScoped<ISessionRepository, SessionRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<ISessionQueryService, SessionQueryService>();
 
         return services;
     }

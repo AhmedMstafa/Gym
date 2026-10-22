@@ -1,4 +1,4 @@
-﻿using Gym.DataAccess.Data.Contexts;
+using Gym.DataAccess.Data.Contexts;
 using Gym.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
@@ -20,7 +20,12 @@ namespace Gym.DataAccess.Repositories
         => await _dbset.FirstOrDefaultAsync(predicate,cancellationToken);
 
 
-        public async Task<TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken = default,bool trackChanges = true, Expression<Func<TEntity, bool>>? predicate = null, params Expression<Func<TEntity, object>>[] includes)
+        public async Task<TEntity?> GetByIdAsync(
+            int id,
+            CancellationToken cancellationToken = default,
+            bool trackChanges = true,
+            Expression<Func<TEntity, bool>>? predicate = null,
+            params Expression<Func<TEntity, object>>[] includes)
         {
             var query = ApplayIncludes(_dbset.AsQueryable(), includes);
             if (!trackChanges)
@@ -53,14 +58,15 @@ namespace Gym.DataAccess.Repositories
       public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         => await _dbContext.SaveChangesAsync(cancellationToken);
 
-        private static IQueryable<TEntity> ApplayIncludes(IQueryable<TEntity> query, IEnumerable<Expression<Func<TEntity, object>>> includes)
+        private static IQueryable<TEntity> ApplayIncludes(IQueryable<TEntity> query, IEnumerable<Expression<Func<TEntity, object>>>? includes)
         {
-            foreach (var  include in includes)
-            {
-                query.Include(include);
+            if (includes is null) return query;
 
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
             }
-                return query;
+            return query;
         }
     }
 }

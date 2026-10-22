@@ -1,10 +1,6 @@
 using Gym.Business.Services;
 using Gym.Business.ViewModels.Members;
-using Gym.DataAccess.Entities;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualBasic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Gym.Presentation.Controllers
 {
@@ -12,9 +8,9 @@ namespace Gym.Presentation.Controllers
     {
         public async Task<IActionResult> Index(CancellationToken ct)
         {
-            var items = await members.GetAllAsync(ct);
+            var result = await members.GetAllAsync(ct);
 
-            return View(items);
+            return View(result.Value);
         }
 
         [HttpGet]
@@ -40,43 +36,43 @@ namespace Gym.Presentation.Controllers
 
                 return View(model);
             }
-            TempData["Success"] = "Member Creted Successfuly";
+            TempData["Success"] = "Member Created Successfully";
             return RedirectToAction(nameof(Index));
         }
 
         [HttpGet]
         public async Task<IActionResult> Details(int id, CancellationToken ct)
         {
-            var member = await members.GetDetailsAsync(id, ct);
+            var result = await members.GetDetailsAsync(id, ct);
 
-            if (member == null) return NotFound();
+            if (result.IsFailure) return NotFound();
 
-            return View(member); 
+            return View(result.Value); 
         }
 
         [HttpGet]
-        public async Task<IActionResult> HealthRecord(int id , CancellationToken ct)
+        public async Task<IActionResult> HealthRecord(int id, CancellationToken ct)
         {
-            var healthRecord = await members.GetHealthRecordAsync(id, ct);
+            var result = await members.GetHealthRecordAsync(id, ct);
 
-            if (healthRecord == null) return NotFound();
+            if (result.IsFailure) return NotFound();
 
-            return View(healthRecord);
+            return View(result.Value);
         }
 
         [HttpGet]
-        public async Task<IActionResult> Edit(int id , CancellationToken ct)
+        public async Task<IActionResult> Edit(int id, CancellationToken ct)
         {
-            var member = await members.GetForUpdateAsync(id, ct);
+            var result = await members.GetForUpdateAsync(id, ct);
 
-            if (member == null) return NotFound();
+            if (result.IsFailure) return NotFound();
 
-            return View(member);
+            return View(result.Value);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit([FromRoute] int id ,EditMemberViewModel editMemberViewModel, CancellationToken ct)
+        public async Task<IActionResult> Edit([FromRoute] int id, EditMemberViewModel editMemberViewModel, CancellationToken ct)
         {
             if (!ModelState.IsValid) return View(editMemberViewModel);
 
@@ -90,7 +86,7 @@ namespace Gym.Presentation.Controllers
                 return View(editMemberViewModel);
             }
 
-            TempData["Success"] = "Member Updated Successfuly";
+            TempData["Success"] = "Member Updated Successfully";
 
             return RedirectToAction(nameof(Index));
         }
@@ -98,15 +94,14 @@ namespace Gym.Presentation.Controllers
         [HttpGet]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
-            var member = await members.GetDetailsAsync(id, ct);
+            var result = await members.GetDetailsAsync(id, ct);
 
-            if (member is null) return NotFound();
+            if (result.IsFailure) return NotFound();
 
-            ViewBag.id = member.Id;
+            ViewBag.id = result.Value.Id;
 
             return View();
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -126,6 +121,5 @@ namespace Gym.Presentation.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-
     }
 }

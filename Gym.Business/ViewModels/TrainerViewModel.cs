@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Gym.Business.ViewModels.Sessions;
 using Gym.DataAccess.Enums;
 
 namespace Gym.Business.ViewModels
@@ -10,6 +11,6 @@ namespace Gym.Business.ViewModels
 
         public DateTime HierDate { get; set; }
 
-        public List<SessionViewModel> Sessions { get; set; } = new List<SessionViewModel>();
+        public List<SessionIndexViewModel> Sessions { get; set; } = new List<SessionIndexViewModel>();
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -22,9 +22,9 @@ namespace Gym.Business.ViewModels.Members
         public string DateOfBirth { get; set; } = default!;
         public string PlanName { get; set; } = default!;
 
-        public string MemberShipStartDate { get; set; }
+        public string MemberShipStartDate { get; set; } = default!;
 
-        public string MemberShipEndDate { get; set; }
+        public string MemberShipEndDate { get; set; } = default!;
 
 
     }

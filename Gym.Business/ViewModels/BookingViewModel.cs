@@ -1,4 +1,5 @@
 using Gym.Business.ViewModels.Members;
+using Gym.Business.ViewModels.Sessions;
 using System;
 
 namespace Gym.Business.ViewModels
@@ -15,6 +16,6 @@ namespace Gym.Business.ViewModels
 
         public int SessionId { get; set; }
 
-        public SessionViewModel? Session { get; set; }
+        public SessionIndexViewModel? Session { get; set; }
     }
 }
