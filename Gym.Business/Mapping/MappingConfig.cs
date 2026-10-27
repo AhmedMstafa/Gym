@@ -1,5 +1,7 @@
+using Gym.Business.Mapping.Resolvers;
 using Gym.Business.ViewModels;
 using Gym.Business.ViewModels.Members;
+using Gym.Business.ViewModels.Sessions;
 using Gym.DataAccess.Entities;
 using Gym.DataAccess.Entities.ValueObjects;
 using Mapster;
@@ -16,21 +18,13 @@ public class MappingConfig : IRegister
         config.NewConfig<Member, MemberDetailsViewModel>()
             .Map(dest => dest.Gender, src => src.Gender.ToString())
             .Map(dest => dest.DateOfBirth, src => src.DateOfBirth.ToShortDateString())
-            .Map(dest => dest.Address, src => src.Address != null 
-                ? $"{src.Address.BuildingNumber} - {src.Address.Street} - {src.Address.City}" 
-                : "-")
-            .Map(dest => dest.PlanName, src => src.MemberShips.FirstOrDefault() != null 
-                ? src.MemberShips.FirstOrDefault()!.Plan.Name 
-                : "No Active Plan")
-            .Map(dest => dest.MemberShipStartDate, src => src.MemberShips.FirstOrDefault() != null 
-                ? src.MemberShips.FirstOrDefault()!.StartDate.ToShortDateString() 
-                : "-")
-            .Map(dest => dest.MemberShipEndDate, src => src.MemberShips.FirstOrDefault() != null 
-                ? src.MemberShips.FirstOrDefault()!.EndDate.ToShortDateString() 
-                : "-");
+            .Map(dest => dest.Address, src => MemberAddressResolver.Resolve(src))
+            .Map(dest => dest.PlanName, src => MemberPlanNameResolver.Resolve(src))
+            .Map(dest => dest.MemberShipStartDate, src => MemberMembershipStartDateResolver.Resolve(src))
+            .Map(dest => dest.MemberShipEndDate, src => MemberMembershipEndDateResolver.Resolve(src));
 
         config.NewConfig<HealthRecord, HealthRecordViewModel>()
-            .Map(dest => dest.BloodType, src => src.BloodType.ToString());
+            .Map(dest => dest.BloodType, src => HealthRecordBloodTypeResolver.Resolve(src));
 
         config.NewConfig<Member, EditMemberViewModel>()
             .Map(dest => dest.BuildingNumber, src => src.Address != null ? src.Address.BuildingNumber : 0)
@@ -54,5 +48,15 @@ public class MappingConfig : IRegister
                 Weight = src.HealthRecord.Weight,
                 Notes = src.HealthRecord.Notes
             });
+
+        config.NewConfig<Session, SessionDetailsViewModel>()
+            .Map(dest => dest.CategoryName, src => src.Category != null ? src.Category.Name : string.Empty)
+            .Map(dest => dest.TrainerName, src => src.Trainer != null ? src.Trainer.Name : string.Empty)
+            .Map(dest => dest.BookedCount, src => src.Bookings != null ? src.Bookings.Count : 0);
+
+        config.NewConfig<CreateSessionViewModel, Session>()
+            .Map(dest => dest.Description, src => src.Description.Trim());
+
+        config.NewConfig<Session, EditSessionViewModel>();
     }
 }

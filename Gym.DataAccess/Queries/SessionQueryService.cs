@@ -1,4 +1,4 @@
-﻿using Gym.DataAccess.Data.Contexts;
+using Gym.DataAccess.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
 
 namespace Gym.DataAccess.Queries
@@ -16,11 +16,12 @@ namespace Gym.DataAccess.Queries
                     Speciality = s.Category.Name,
                     Description = s.Description,
                     TrainerName = s.Trainer.Name,
+                    TrainerId = s.TrainerId,
                     StartDate = s.StartDate,
                     EndDate = s.EndDate,
                     Capacity = s.Capacity,
                     BookedCount = s.Bookings.Count,
-                }).ToListAsync();
+                }).ToListAsync(cancellationToken);
         }
     }
 }

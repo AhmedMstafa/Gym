@@ -1,5 +1,6 @@
 using Gym.Business.Services;
 using Gym.Business.ViewModels.Members;
+using Gym.Presentation.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Gym.Presentation.Controllers
@@ -7,11 +8,7 @@ namespace Gym.Presentation.Controllers
     public class MembersController(IMemberServices members) : Controller
     {
         public async Task<IActionResult> Index(CancellationToken ct)
-        {
-            var result = await members.GetAllAsync(ct);
-
-            return View(result.Value);
-        }
+            => this.ViewIndexOrEmpty(await members.GetAllAsync(ct), "Could not load members.");
 
         [HttpGet]
         public IActionResult Create()
@@ -31,11 +28,9 @@ namespace Gym.Presentation.Controllers
             var result = await members.CreateAsync(model, ct);
             if (!result.IsSuccess)
             {
-                ModelState.AddModelError(result.Error.Code, result.Error.Description);
-                TempData["Error"] = "Cannot Create a Member";
-
-                return View(model);
+                return this.ViewFormOnFailure(result, model, "Cannot Create a Member");
             }
+
             TempData["Success"] = "Member Created Successfully";
             return RedirectToAction(nameof(Index));
         }
@@ -43,31 +38,19 @@ namespace Gym.Presentation.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int id, CancellationToken ct)
         {
-            var result = await members.GetDetailsAsync(id, ct);
-
-            if (result.IsFailure) return NotFound();
-
-            return View(result.Value); 
+            return this.ViewOrNotFound(await members.GetDetailsAsync(id, ct));
         }
 
         [HttpGet]
         public async Task<IActionResult> HealthRecord(int id, CancellationToken ct)
         {
-            var result = await members.GetHealthRecordAsync(id, ct);
-
-            if (result.IsFailure) return NotFound();
-
-            return View(result.Value);
+            return this.ViewOrNotFound(await members.GetHealthRecordAsync(id, ct));
         }
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id, CancellationToken ct)
         {
-            var result = await members.GetForUpdateAsync(id, ct);
-
-            if (result.IsFailure) return NotFound();
-
-            return View(result.Value);
+            return this.ViewOrNotFound(await members.GetForUpdateAsync(id, ct));
         }
 
         [HttpPost]
@@ -80,10 +63,7 @@ namespace Gym.Presentation.Controllers
 
             if (!result.IsSuccess)
             {
-                ModelState.AddModelError(result.Error.Code, result.Error.Description);
-                TempData["Error"] = "Cannot Update a Member";
-
-                return View(editMemberViewModel);
+                return this.ViewFormOnFailure(result, editMemberViewModel, "Cannot Update a Member");
             }
 
             TempData["Success"] = "Member Updated Successfully";

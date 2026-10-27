@@ -1,17 +1,14 @@
-using Gym.DataAccess.Entities;
+using Gym.Business.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 
 namespace Gym.Presentation.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController(IHomeService homeService) : Controller
     {
-        public IActionResult Index()
+        public async Task<IActionResult> Index(CancellationToken ct)
         {
-            return View();
+            var stats = await homeService.GetStatisticsAsync(ct);
+            return View(stats);
         }
-
-
-     
     }
 }

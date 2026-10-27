@@ -19,6 +19,7 @@ public static class BusinessServiceCollectionExtensions
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddScoped<IMemberServices, MemberService>();
         services.AddScoped<ISessionService, SessionService>();
+        services.AddScoped<IHomeService, HomeService>();
 
         return services;
     }
