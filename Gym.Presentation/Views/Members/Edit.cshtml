@@ -1,4 +1,4 @@
- @model EditMemberViewModel
+﻿ @model EditMemberViewModel
 
 <div class="container">
     <main role="main" class="pb-3">
@@ -15,9 +15,16 @@
                             </div>
                             <div class="card-body text-center">
                                 <h2 class="mb-1 text-primary-color">@Model.Name</h2>
-                                <form asp-controller="Members" asp-action="Edit" asp-route-id="@ViewContext.RouteData.Values["id"]" method="post">
+                                <form asp-controller="Members" asp-action="Edit" asp-route-id="@ViewContext.RouteData.Values["id"]" method="post" enctype="multipart/form-data">
                                     <input type="hidden" asp-for="Name" />
-                                    <input type="hidden" asp-for="Photo" />
+                                                                        <input type="hidden" asp-for="Photo" />
+                                    <div class="col-12 mt-3 text-start">
+                                        <div class="p-3 bg-light rounded">
+                                            <small class="text-muted d-block mb-1">Update Profile Photo</small>
+                                            <input asp-for="NewPhoto" class="form-control" type="file" accept="image/*" />
+                                            <span asp-validation-for="NewPhoto" class="text-danger"></span>
+                                        </div>
+                                    </div>
                                     <div class="mt-4 text-start">
                                         <div class="row g-3">
                                             <div class="col-12">

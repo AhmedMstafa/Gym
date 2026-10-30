@@ -1,8 +1,7 @@
-﻿using Gym.DataAccess.Data.Contexts;
+using Gym.DataAccess.Data.Contexts;
 using Gym.DataAccess.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Gym.DataAccess.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace Gym.DataAccess.Data.Seeder
 {
@@ -10,19 +9,22 @@ namespace Gym.DataAccess.Data.Seeder
     {
         public static async Task SeedAsync(GymDbContext dbContext)
         {
-            if (!dbContext.Categories.Any())
+            if (await dbContext.Categories.AnyAsync())
             {
-                var categories = new List<Category>
-                {
-                    new Category { Name = "Strength Training" },
-                    new Category { Name = "Cardio" },
-                    new Category { Name = "Flexibility" },
-                    new Category { Name = "Balance" },
-                    new Category { Name = "Endurance" }
-                };
-                await dbContext.Categories.AddRangeAsync(categories);
-                await dbContext.SaveChangesAsync();
+                return;
             }
+
+            var categories = new List<Category>
+            {
+                new Category { Name = "Strength Training", RequiredSpeciality = Speciality.Fitness },
+                new Category { Name = "Cardio", RequiredSpeciality = Speciality.Fitness },
+                new Category { Name = "Flexibility", RequiredSpeciality = Speciality.Yoga },
+                new Category { Name = "Balance", RequiredSpeciality = Speciality.Pilates },
+                new Category { Name = "Endurance", RequiredSpeciality = Speciality.Fitness }
+            };
+
+            await dbContext.Categories.AddRangeAsync(categories);
+            await dbContext.SaveChangesAsync();
         }
     }
 }

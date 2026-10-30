@@ -39,9 +39,9 @@
                            asp-controller="Members" asp-action="Index">Members</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 @IsActive("Trainers")"
+                        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 @IsActive("Trainer")"
                            aria-current="@(IsActive("Trainers") == "active" ? "page" : null)"
-                           asp-controller="Trainers" asp-action="Index">Trainers</a>
+                           asp-controller="Trainer" asp-action="Index">Trainers</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 @IsActive("Sessions", "Index")"
@@ -54,22 +54,30 @@
                            asp-controller="Plans" asp-action="Index">Plans</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 @IsActive("Memberships")"
-                           aria-current="@(IsActive("Memberships") == "active" ? "page" : null)"
-                           asp-controller="Memberships" asp-action="Index">Memberships</a>
+                        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 @IsActive("Membership")"
+                           aria-current="@(IsActive("Membership") == "active" ? "page" : null)"
+                           asp-controller="Membership" asp-action="Index">Memberships</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 @IsActive("Sessions", "Schedule")"
+                        <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 @IsActive("Sessions", "Booking")"
                            aria-current="@(IsActive("Sessions", "Schedule") == "active" ? "page" : null)"
-                           asp-controller="Sessions" asp-action="Schedule">Sessions Schedule</a>
+                           asp-controller="Booking" asp-action="Index">Sessions Schedule</a>
                     </li>
                     <li class="nav-item">
-                        <form action="/Account/Logout" method="post" class="d-inline">
-                            <button type="submit"
-                                    class="btn btn-link nav-link px-3 py-2 mx-2 fw-bolder fs-5 text-black-alternative">
-                                Logout
-                            </button>
-                        </form>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                <button type="submit"
+                                        class="btn btn-link nav-link px-3 py-2 mx-2 fw-bolder fs-5 text-black-alternative">
+                                    Logout
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a class="nav-link px-3 py-2 mx-2 fw-bolder fs-5 @IsActive("Account", "Login")"
+                               asp-controller="Account" asp-action="Login">Login</a>
+                        }
                     </li>
                 </ul>
             </div>

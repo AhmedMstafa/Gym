@@ -1,4 +1,4 @@
-@using Gym.Business.ViewModels.Members
+﻿@using Gym.Business.ViewModels.Members
 @using Gym.DataAccess.Enums
 @model CreateMemberViewModel
 @{
@@ -12,9 +12,9 @@
             <h3 class="text-primary-color">Add Member</h3>
         </header>
 
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-            @Html.AntiForgeryToken()
+            
             <!-- Personal Information -->
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-body p-4">
@@ -42,6 +42,11 @@
                             <label asp-for="DateOfBirth" class="form-label"></label>
                             <input asp-for="DateOfBirth" class="form-control" type="date" />
                             <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label asp-for="Photo" class="form-label"></label>
+                            <input asp-for="Photo" class="form-control" type="file" accept="image/*" />
+                            <span asp-validation-for="Photo" class="text-danger"></span>
                         </div>
                         <div class="col-12 col-md-6">
                             <label asp-for="Gender" class="form-label"></label>
@@ -131,5 +136,5 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-     <partial name="_AlertDismissScript" />
+     
 }

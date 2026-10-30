@@ -25,9 +25,9 @@ namespace Gym.DataAccess.Repositories
         }
 
         public async Task<bool> IsEmailTakenAsync(string normalizedEmail, int? excludeId = null, CancellationToken cancellationToken = default)
-        => await _DbContext.Set<Member>().AnyAsync(m => m.Email == normalizedEmail && (!excludeId.HasValue || m.Id != excludeId.Value), cancellationToken);
+        => await _DbContext.Users.AnyAsync(m => m.Email == normalizedEmail && (!excludeId.HasValue || m.Id != excludeId.Value), cancellationToken);
 
         public async Task<bool> IsPhoneTakenAsync(string phone, int? excludeId = null, CancellationToken cancellationToken = default)
-        => await _DbContext.Set<Member>().AnyAsync(m => m.Phone == phone && (!excludeId.HasValue || m.Id != excludeId.Value), cancellationToken);
+        => await _DbContext.Users.AnyAsync(m => m.Phone == phone && (!excludeId.HasValue || m.Id != excludeId.Value), cancellationToken);
     }
 }

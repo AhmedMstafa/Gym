@@ -32,6 +32,7 @@ public class MappingConfig : IRegister
             .Map(dest => dest.Street, src => src.Address != null ? src.Address.Street : string.Empty);
 
         config.NewConfig<CreateMemberViewModel, Member>()
+            .Ignore(dest => dest.Photo)
             .Map(dest => dest.Name, src => src.Name.Trim())
             .Map(dest => dest.Email, src => src.Email.Trim().ToLower())
             .Map(dest => dest.Phone, src => src.Phone.Trim())

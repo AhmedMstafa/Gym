@@ -1,0 +1,266 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied - Fitness Gym</title>
+    <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #f8f9fa;
+                color: #333;
+                min-height: 100vh;
+                min-height: 100dvh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* Main Container */
+            .container {
+                max-width: 900px;
+                width: 100%;
+                margin: 0 auto;
+                padding: 40px;
+            }
+
+            .access-denied-wrapper {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 60px;
+                align-items: center;
+                background: white;
+                padding: 60px;
+                border-radius: 12px;
+                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            }
+
+            /* Left Content */
+            .content {
+                display: flex;
+                flex-direction: column;
+                gap: 30px;
+            }
+
+            .error-icon {
+                font-size: 64px;
+                color: #ff4757;
+            }
+
+            h1 {
+                font-size: 48px;
+                color: #222;
+                font-weight: bold;
+                line-height: 1.2;
+            }
+
+            .error-highlight {
+                color: #0033cc;
+            }
+
+            .error-message {
+                font-size: 16px;
+                color: #666;
+                line-height: 1.6;
+            }
+
+            .error-code {
+                background-color: #f0f0f0;
+                padding: 12px 16px;
+                border-radius: 6px;
+                font-family: 'Courier New', monospace;
+                font-size: 14px;
+                color: #333;
+                margin: 10px 0;
+                word-break: break-word;
+            }
+
+            /* Buttons */
+            .button-group {
+                display: flex;
+                gap: 15px;
+                margin-top: 20px;
+            }
+
+            .btn {
+                padding: 12px 28px;
+                border: none;
+                border-radius: 6px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s;
+                text-decoration: none;
+                display: inline-block;
+                text-align: center;
+            }
+
+            .btn-primary {
+                background-color: #0033cc;
+                color: white;
+            }
+
+                .btn-primary:hover {
+                    background-color: #0028a3;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0, 51, 204, 0.3);
+                }
+
+            .btn-secondary {
+                background-color: transparent;
+                color: #0033cc;
+                border: 2px solid #0033cc;
+            }
+
+                .btn-secondary:hover {
+                    background-color: #f0f4ff;
+                }
+
+            /* Right Image */
+            .image-section {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .lock-icon {
+                font-size: 120px;
+                opacity: 0.8;
+            }
+
+            /* ===================== Responsive ===================== */
+
+            /* Tablets */
+            @@media (max-width: 992px) {
+                .access-denied-wrapper {
+                    gap: 30px;
+                    padding: 40px;
+                }
+
+                h1 {
+                    font-size: 40px;
+                }
+
+                .lock-icon {
+                    font-size: 100px;
+                }
+            }
+
+            /* Mobile: single column */
+            @@media (max-width: 768px) {
+                body {
+                    align-items: flex-start;
+                }
+
+                .container {
+                    padding: 20px;
+                }
+
+                .access-denied-wrapper {
+                    grid-template-columns: 1fr;
+                    gap: 25px;
+                    padding: 30px 25px;
+                    text-align: center;
+                }
+                /* اللوك فوق والمحتوى تحته */
+                .image-section {
+                    order: -1;
+                }
+
+                .content {
+                    gap: 20px;
+                    align-items: center;
+                }
+
+                h1 {
+                    font-size: 34px;
+                }
+
+                .error-icon {
+                    font-size: 48px;
+                }
+
+                .lock-icon {
+                    font-size: 80px;
+                }
+
+                .button-group {
+                    flex-direction: column;
+                    width: 100%;
+                }
+
+                .btn {
+                    width: 100%;
+                }
+            }
+
+            /* Small phones */
+            @@media (max-width: 480px) {
+                .container {
+                    padding: 12px;
+                }
+
+                .access-denied-wrapper {
+                    padding: 25px 18px;
+                    border-radius: 10px;
+                }
+
+                h1 {
+                    font-size: 28px;
+                }
+
+                .error-message {
+                    font-size: 14px;
+                }
+
+                .error-code {
+                    font-size: 12px;
+                }
+
+                .lock-icon {
+                    font-size: 64px;
+                }
+            }
+    </style>
+</head>
+<body>
+    <!-- Main Content -->
+    <div class="container">
+        <div class="access-denied-wrapper">
+            <!-- Left Content -->
+            <div class="content">
+                <div class="error-icon">🚫</div>
+                <h1>
+                    Access <span class="error-highlight">Denied</span>
+                </h1>
+                <p class="error-message">
+                    We're sorry, but you don't have permission to access this resource. Your current user role or membership status doesn't grant you access to this section.
+                </p>
+                <div class="error-code">
+                    Error Code: 403 - Forbidden Access
+                </div>
+                <p class="error-message">
+                    If you believe this is an error or need elevated permissions, please contact the system administrator or your membership manager for assistance.
+                </p>
+                <div class="button-group">
+                    <a asp-action="Index" asp-controller="Home" class="btn btn-primary">Return to Home</a>
+                </div>
+            </div>
+
+            <!-- Right Image -->
+            <div class="image-section">
+                <div class="lock-icon">🔒</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

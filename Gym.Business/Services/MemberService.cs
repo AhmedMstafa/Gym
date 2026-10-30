@@ -7,6 +7,7 @@ using Gym.DataAccess.Enums;
 using Gym.DataAccess.Repositories;
 using MapsterMapper;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 
 namespace Gym.Business.Services
 {
@@ -14,6 +15,7 @@ namespace Gym.Business.Services
         IUnitOfWork unitOfWork,
         IMapper mapper,
         IDateTimeProvider dateTimeProvider,
+        IPhotoService photoService,
         ILogger<MemberService> logger) : IMemberServices
     {
         public async Task<Result<IEnumerable<MemberIndexViewModel>>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -26,49 +28,95 @@ namespace Gym.Business.Services
 
         public async Task<Result> CreateAsync(CreateMemberViewModel model, CancellationToken cancellationToken = default)
         {
-            var email = model.Email.Trim().ToLower();
-            var phone = model.Phone.Trim();
-
-            if (await unitOfWork.Members.IsEmailTakenAsync(email, cancellationToken: cancellationToken))
-            {
-                logger.LogWarning("Member creation failed: Email {Email} is already registered.", email);
-                return Result.Failure("Email", "This email is already registered.");
-            }
-
-            if (await unitOfWork.Members.IsPhoneTakenAsync(phone, cancellationToken: cancellationToken))
-            {
-                logger.LogWarning("Member creation failed: Phone {Phone} is already in use.", phone);
-                return Result.Failure("Phone", "This phone number is already registered.");
-            }
-
-            if (!Enum.TryParse(model.Gender, true, out Gender gender))
-            {
-                logger.LogWarning("Member creation failed: Invalid gender '{Gender}'.", model.Gender);
-                return Result.Failure("Gender", "Invalid gender selected.");
-            }
-
-            if (!Enum.TryParse(model.HealthRecord.BloodType, true, out BloodType bloodType))
-            {
-                logger.LogWarning("Member creation failed: Invalid blood type '{BloodType}'.", model.HealthRecord.BloodType);
-                return Result.Failure("HealthRecord.BloodType", "Invalid blood type selected.");
-            }
-
-            var member = mapper.Map<Member>(model);
-            member.Gender = gender;
-            member.HealthRecord.BloodType = bloodType;
-
+            string? uploadedPhotoUrl = null;
             try
             {
+                var email = model.Email.Trim().ToLower();
+                var phone = model.Phone.Trim();
+
+                if (await unitOfWork.Members.IsEmailTakenAsync(email, cancellationToken: cancellationToken))
+                {
+                    logger.LogWarning("Member creation failed: Email {Email} is already registered.", email);
+                    return Result.Failure("Email", "This email is already registered.");
+                }
+
+                if (await unitOfWork.Members.IsPhoneTakenAsync(phone, cancellationToken: cancellationToken))
+                {
+                    logger.LogWarning("Member creation failed: Phone {Phone} is already in use.", phone);
+                    return Result.Failure("Phone", "This phone number is already registered.");
+                }
+
+                if (!Enum.TryParse(model.Gender, true, out Gender gender))
+                {
+                    logger.LogWarning("Member creation failed: Invalid gender '{Gender}'.", model.Gender);
+                    return Result.Failure("Gender", "Invalid gender selected.");
+                }
+
+                if (model.HealthRecord is null ||
+                    !Enum.TryParse(model.HealthRecord.BloodType, true, out BloodType bloodType))
+                {
+                    logger.LogWarning("Member creation failed: Invalid blood type '{BloodType}'.", model.HealthRecord?.BloodType);
+                    return Result.Failure("HealthRecord.BloodType", "Invalid blood type selected.");
+                }
+
+                if (model.Photo != null && model.Photo.Length > 0)
+                {
+                    var uploadResult = await photoService.UploadPhotoAsync(model.Photo, "members", cancellationToken);
+                    if (uploadResult.IsFailure)
+                    {
+                        logger.LogWarning("Photo upload failed: {Error}", uploadResult.Error.Description);
+                        return Result.Failure("Photo", uploadResult.Error.Description);
+                    }
+                    uploadedPhotoUrl = uploadResult.Value;
+                }
+
+                var member = new Member
+                {
+                    Name = model.Name.Trim(),
+                    Email = email,
+                    Phone = phone,
+                    DateOfBirth = DateOnly.FromDateTime(model.DateOfBirth),
+                    Gender = gender,
+                    JoinDate = model.JoinDate == default ? dateTimeProvider.Now : model.JoinDate,
+                    Photo = uploadedPhotoUrl,
+                    Address = new Address
+                    {
+                        BuildingNumber = model.BuildingNumber,
+                        City = model.City.Trim(),
+                        Street = model.Street.Trim()
+                    },
+                    HealthRecord = new HealthRecord
+                    {
+                        Hight = model.HealthRecord.Hight,
+                        Weight = model.HealthRecord.Weight,
+                        Notes = model.HealthRecord.Notes,
+                        BloodType = bloodType
+                    }
+                };
+
                 await unitOfWork.Members.AddAsync(member, cancellationToken);
                 await unitOfWork.SaveChangesAsync(cancellationToken);
                 logger.LogInformation("Member {MemberName} successfully created with ID {MemberId}.", member.Name, member.Id);
                 return Result.Success();
             }
+            catch (DbUpdateException ex)
+            {
+                if (!string.IsNullOrEmpty(uploadedPhotoUrl))
+                    await photoService.DeletePhotoAsync(uploadedPhotoUrl, cancellationToken);
+
+                logger.LogWarning(ex, "Member creation failed because the email or phone is already registered.");
+                return Result.Failure("DuplicateUser", "The email or phone number is already registered.");
+            }
             catch (Exception ex)
             {
+                if (!string.IsNullOrEmpty(uploadedPhotoUrl))
+                {
+                    await photoService.DeletePhotoAsync(uploadedPhotoUrl, cancellationToken);
+                }
+
                 var errorMsg = ex.InnerException?.Message ?? ex.Message;
-                logger.LogError(ex, "Database error occurred while creating member with email {Email}.", email);
-                return Result.Failure("DatabaseError", $"Database Error: {errorMsg}");
+                logger.LogError(ex, "Error occurred while creating member.");
+                return Result.Failure("DatabaseError", $"Could not create member: {errorMsg}");
             }
         }
 
@@ -151,6 +199,19 @@ namespace Gym.Business.Services
                 return Result.Failure(nameof(model.Phone), "This Phone is already registered.");
             }
 
+            string? oldPhoto = member.Photo;
+            if (model.NewPhoto != null && model.NewPhoto.Length > 0)
+            {
+                var uploadResult = await photoService.UploadPhotoAsync(model.NewPhoto, "members", cancellationToken);
+                if (uploadResult.IsFailure)
+                {
+                    logger.LogWarning("New photo upload failed for member {MemberId}: {Error}", id, uploadResult.Error.Description);
+                    return Result.Failure("NewPhoto", uploadResult.Error.Description);
+                }
+
+                member.Photo = uploadResult.Value;
+            }
+
             member.Email = normalizedEmail;
             member.Phone = normalizedPhone;
             member.Address = new Address
@@ -162,6 +223,11 @@ namespace Gym.Business.Services
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
             logger.LogInformation("Member with ID {MemberId} was updated successfully.", id);
+
+            if (model.NewPhoto != null && !string.IsNullOrEmpty(oldPhoto))
+            {
+                await photoService.DeletePhotoAsync(oldPhoto, cancellationToken);
+            }
 
             return Result.Success();
         }
@@ -183,6 +249,8 @@ namespace Gym.Business.Services
                 return Result.Failure("ActiveSessions", "Member has upcoming active sessions and cannot be deleted.");
             }
 
+            var photoToDelete = member.Photo;
+
             await unitOfWork.Members.SoftDeleteAsync(member, cancellationToken);
 
             var healthRecord = await unitOfWork.HealthRecords.FindAsync(h => h.MemberId == id, cancellationToken);
@@ -193,6 +261,11 @@ namespace Gym.Business.Services
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
             logger.LogInformation("Member with ID {MemberId} was soft deleted successfully.", id);
+
+            if (!string.IsNullOrEmpty(photoToDelete))
+            {
+                await photoService.DeletePhotoAsync(photoToDelete, cancellationToken);
+            }
 
             return Result.Success();
         }

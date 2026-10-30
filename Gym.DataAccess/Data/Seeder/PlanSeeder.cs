@@ -1,4 +1,5 @@
-﻿using Gym.DataAccess.Data.Contexts;
+using Gym.DataAccess.Data.Contexts;
+using Gym.DataAccess.Data.Seeder.Models;
 using Gym.DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -6,47 +7,30 @@ namespace Gym.DataAccess.Data.Seeder
 {
     internal static class PlanSeeder
     {
+        private const string SeederFileName = "plans.json";
+
         public static async Task SeedAsync(GymDbContext dbContext)
         {
-
-           bool hasPlans = await dbContext.Plans.AnyAsync();
-
-            if(hasPlans)
+            if (await dbContext.Plans.AnyAsync())
             {
-                return; // Plans already seeded
-            };
+                return;
+            }
 
-            var plans = new List<Plan>
+            var seederPlans = await SeedJsonLoader.LoadAsync<PlanSeedModel>(SeederFileName);
+
+            if (seederPlans == null || !seederPlans.Any())
             {
-                new Plan
-                {
-                    Name = "Basic Plan",
-                    Price = 300,
-                    DurationDays  = 30,
-                    Description = "Access to gym equipment during staffed hours"
-                },
-                new Plan
-                {
-                    Name = "Standard Plan",
-                    Price = 500,
-                    DurationDays = 60,
-                    Description = "Includes gym equipment and 2 group classes per week"
-                },
-                new Plan
-                {
-                    Name = "Premium Plan",
-                    Price = 900,
-                    DurationDays = 90,
-                    Description = "Unlimited access to equipment, classes, and sauna"
-                },
-                new Plan
-                {
-                    Name = "Annual Plan",
-                    Price = 3000,
-                    DurationDays = 365,
-                    Description = "Full year access with personal trainer sessions"
-                }
-            };
+                return;
+            }
+
+            var plans = seederPlans.Select(p => new Plan
+            {
+                DurationDays = p.DurationDays,
+                Description = p.Description,
+                Name = p.Name,
+                Price = p.Price,
+                IsActive = p.IsActive,
+            });
 
             await dbContext.Plans.AddRangeAsync(plans);
             await dbContext.SaveChangesAsync();

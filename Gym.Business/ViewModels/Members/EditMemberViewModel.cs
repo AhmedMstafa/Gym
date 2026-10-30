@@ -1,7 +1,5 @@
-using System;
-using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
 namespace Gym.Business.ViewModels.Members
 {
@@ -10,6 +8,9 @@ namespace Gym.Business.ViewModels.Members
         public string? Name { get; set; }
 
         public string? Photo { get; set; }
+
+        [Display(Name = "New Profile Photo")]
+        public IFormFile? NewPhoto { get; set; }
 
         [Required(ErrorMessage = "Email Is Required")]
         [EmailAddress(ErrorMessage = "Invalid email format")]
@@ -25,8 +26,6 @@ namespace Gym.Business.ViewModels.Members
         [DataType(DataType.Date)]
         public DateTime? JoinDate { get; set; }
 
-      
-
         [Required(ErrorMessage = "Building Number Is Required")]
         [Range(1, 9000, ErrorMessage = "Building Number must be greater than 0")]
         public int BuildingNumber { get; set; }
@@ -40,7 +39,5 @@ namespace Gym.Business.ViewModels.Members
         [StringLength(150, MinimumLength = 2, ErrorMessage = "Street must be between 2 and 150 characters")]
         [RegularExpression(@"^[a-zA-Z0-9\s]+$", ErrorMessage = "Street can only contain letters, numbers, and spaces")]
         public string Street { get; set; } = default!;
-
-      
     }
 }

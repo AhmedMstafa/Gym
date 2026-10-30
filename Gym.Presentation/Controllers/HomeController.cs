@@ -1,4 +1,5 @@
 using Gym.Business.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Gym.Presentation.Controllers

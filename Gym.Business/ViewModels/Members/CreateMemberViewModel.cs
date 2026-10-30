@@ -1,4 +1,5 @@
 using Gym.DataAccess.Enums;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
 namespace Gym.Business.ViewModels.Members
@@ -8,6 +9,9 @@ namespace Gym.Business.ViewModels.Members
         [Required(ErrorMessage = "Name Is Required")]
         [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Name can only contain letters and spaces")]
         public string Name { get; set; } = default!;
+
+        [Display(Name = "Profile Photo")]
+        public IFormFile? Photo { get; set; }
 
         [Required(ErrorMessage = "Email Is Required")]
         [EmailAddress(ErrorMessage = "Invalid email format")]

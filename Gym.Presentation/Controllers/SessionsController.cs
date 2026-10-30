@@ -1,11 +1,13 @@
 using Gym.Business.Services;
 using Gym.Business.ViewModels.Sessions;
 using Gym.Presentation.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Gym.Presentation.Controllers
 {
+    [Authorize]
     public class SessionsController(ISessionService sessionService) : Controller
     {
         [HttpGet]

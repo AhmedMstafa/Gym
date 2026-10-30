@@ -7,6 +7,7 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
     IMemberRepository Members { get; }
     IPlanRepository Plans { get; }
     IBookingRepository Bookings { get; }
+    IMembershipRepository Memberships { get; }
     ITrainerRepository Trainers { get; }
     ISessionRepository Sessions { get; }
     IRepository<HealthRecord> HealthRecords { get; }

@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="CloudinaryDotNet" />
     <PackageReference Include="Mapster" />
     <PackageReference Include="Mapster.DependencyInjection" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
@@ -22,6 +24,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Gym.DataAccess\Gym.DataAccess.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ViewModels\HealthRecords\" />
   </ItemGroup>
 
 </Project>

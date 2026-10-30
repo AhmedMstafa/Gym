@@ -12,5 +12,15 @@ namespace Gym.DataAccess.Repositories
         {
             return await _DbContext.Set<Booking>().AnyAsync(b => b.MemberId == memberId && b.Session.EndDate >= utcNow, cancellationToken);
         }
+
+        public async Task<IReadOnlyList<Booking>> GetBySessionIdAsync(int sessionId, CancellationToken cancellationToken = default)
+            => await _DbContext.Bookings.AsNoTracking().Include(x => x.Member)
+                .Where(x => x.SessionId == sessionId).OrderBy(x => x.Member.Name).ToListAsync(cancellationToken);
+
+        public Task<Booking?> GetByMemberAndSessionAsync(int memberId, int sessionId, CancellationToken cancellationToken = default)
+            => _DbContext.Bookings.FirstOrDefaultAsync(x => x.MemberId == memberId && x.SessionId == sessionId, cancellationToken);
+
+        public Task<int> CountBySessionIdAsync(int sessionId, CancellationToken cancellationToken = default)
+            => _DbContext.Bookings.CountAsync(x => x.SessionId == sessionId, cancellationToken);
     }
 }

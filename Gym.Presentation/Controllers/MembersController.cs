@@ -1,10 +1,12 @@
 using Gym.Business.Services;
 using Gym.Business.ViewModels.Members;
 using Gym.Presentation.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Gym.Presentation.Controllers
 {
+    [Authorize]
     public class MembersController(IMemberServices members) : Controller
     {
         public async Task<IActionResult> Index(CancellationToken ct)
@@ -25,14 +27,22 @@ namespace Gym.Presentation.Controllers
                 return View(model);
             }
 
-            var result = await members.CreateAsync(model, ct);
-            if (!result.IsSuccess)
+            try
             {
-                return this.ViewFormOnFailure(result, model, "Cannot Create a Member");
-            }
+                var result = await members.CreateAsync(model, ct);
+                if (!result.IsSuccess)
+                {
+                    return this.ViewFormOnFailure(result, model, "Cannot Create a Member");
+                }
 
-            TempData["Success"] = "Member Created Successfully";
-            return RedirectToAction(nameof(Index));
+                TempData["Success"] = "Member Created Successfully";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "Cannot Create a Member";
+                return View(model);
+            }
         }
 
         [HttpGet]

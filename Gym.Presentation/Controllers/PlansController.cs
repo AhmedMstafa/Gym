@@ -1,10 +1,10 @@
-﻿using Gym.DataAccess.Data.Contexts;
-using Gym.DataAccess.Repositories;
+﻿using Gym.DataAccess.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Gym.Presentation.Controllers
 {
+    [Authorize]
     public class PlansController : Controller
     {
         private readonly IPlanRepository _PlanRepository;

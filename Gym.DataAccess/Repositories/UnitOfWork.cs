@@ -12,6 +12,7 @@ public class UnitOfWork(GymDbContext dbContext) : IUnitOfWork
     private IMemberRepository? _members;
     private IPlanRepository? _plans;
     private IBookingRepository? _bookings;
+    private IMembershipRepository? _memberships;
     private ITrainerRepository? _trainers;
     private ISessionRepository? _sessions;
     private IRepository<HealthRecord>? _healthRecords;
@@ -20,6 +21,7 @@ public class UnitOfWork(GymDbContext dbContext) : IUnitOfWork
     public IMemberRepository Members => _members ??= new MemberRepository(_dbContext);
     public IPlanRepository Plans => _plans ??= new PlanRepository(_dbContext);
     public IBookingRepository Bookings => _bookings ??= new BookingRepository(_dbContext);
+    public IMembershipRepository Memberships => _memberships ??= new MembershipRepository(_dbContext);
     public ITrainerRepository Trainers => _trainers ??= new TrainerRepository(_dbContext);
     public ISessionRepository Sessions => _sessions ??= new SessionRepository(_dbContext);
     public IRepository<HealthRecord> HealthRecords => _healthRecords ??= new Repository<HealthRecord>(_dbContext);

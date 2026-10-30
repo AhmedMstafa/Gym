@@ -47,6 +47,7 @@ namespace Gym.DataAccess.Repositories
         public  Task SoftDeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
             entity.IsDeleted = true;
+            entity.DeletedAt = DateTime.UtcNow;
              _dbset.Update(entity);
 
             return Task.CompletedTask;
