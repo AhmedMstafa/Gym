@@ -1,0 +1,20 @@
+﻿            @* Alert Messages *@
+            @* Show Success Message if Member is Created Successfully *@
+        @if(TempData["Success"] is string SuccessMessage)
+        {
+            
+            <div id="Alert" class="alert alert-success alert-dismissible fade show">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                Member Created Successfully
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div> 
+        }else if(TempData["Error"] is string ErrorMessage)
+        {
+            
+        @* Show Error Message if Member Failed To Create *@
+            <div id="Alert" class="alert alert-danger alert-dismissible fade show">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                Member Failed To Create
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div> 
+        }
