@@ -1,0 +1,119 @@
+@using Gym.Business.ViewModels.Sessions
+@model CreateSessionViewModel
+
+@{
+    ViewData["Title"] = "Create Session";
+}
+
+<div class="container mt-4">
+    @if (TempData["Error"] is string errorMessage)
+    {
+        <div id="Alert" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @errorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <main role="main" class="pb-4">
+        <header class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="text-primary-color mb-1">Create Training Session</h2>
+                <p class="text-muted mb-0">Schedule a new training session or class</p>
+            </div>
+            <a asp-action="Index" class="btn btn-outline">
+                <i class="bi bi-arrow-left me-1"></i>Back to List
+            </a>
+        </header>
+
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4" role="alert"></div>
+
+            <!-- Session Details -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body p-4">
+                    <div class="section-header mb-3">
+                        <h5 class="text-primary-color fw-bold">
+                            <i class="bi bi-info-circle me-2"></i>Session Details
+                        </h5>
+                        <hr class="mt-2">
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label asp-for="CategoryId" class="form-label fw-medium"></label>
+                            <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.Categories">
+                                <option value="">-- Select Category --</option>
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label asp-for="TrainerId" class="form-label fw-medium"></label>
+                            <select asp-for="TrainerId" class="form-select" asp-items="ViewBag.Trainers">
+                                <option value="">-- Select Trainer --</option>
+                            </select>
+                            <small class="text-muted">Choose a category first to see qualified trainers.</small>
+                            <span asp-validation-for="TrainerId" class="text-danger small d-block"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label fw-medium"></label>
+                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Enter session description and instructions..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule & Capacity -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body p-4">
+                    <div class="section-header mb-3">
+                        <h5 class="text-primary-color fw-bold">
+                            <i class="bi bi-calendar-check me-2"></i>Schedule & Capacity
+                        </h5>
+                        <hr class="mt-2">
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <label asp-for="StartDate" class="form-label fw-medium"></label>
+                            <input asp-for="StartDate" class="form-control" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" />
+                            <span asp-validation-for="StartDate" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label asp-for="EndDate" class="form-label fw-medium"></label>
+                            <input asp-for="EndDate" class="form-control" type="datetime-local" asp-format="{0:yyyy-MM-ddTHH:mm}" />
+                            <span asp-validation-for="EndDate" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label asp-for="Capacity" class="form-label fw-medium"></label>
+                            <input asp-for="Capacity" class="form-control" type="number" min="1" max="25" />
+                            <span asp-validation-for="Capacity" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <footer class="d-flex justify-content-end gap-3">
+                <a asp-action="Index" class="btn btn-outline px-4">
+                    <i class="bi bi-x-circle me-1"></i>Cancel
+                </a>
+                <button type="submit" class="btn btn-fill px-4">
+                    <i class="bi bi-plus-circle me-1"></i>Add Session
+                </button>
+            </footer>
+        </form>
+    </main>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <partial name="_AlertDismissScript" />
+    <partial name="_CategoryTrainerCascadeScript" />
+}

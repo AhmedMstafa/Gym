@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "Gym.Business": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Users\\windows10\\source\\repos\\Gym\\Gym.Presentation"
+    },
+    "Profile 1": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Users\\windows10\\source\\repos\\Gym\\Gym.Presentation"
+    },
+    "Profile 2": {
+      "commandName": "Executable"
+    }
+  }
+}
