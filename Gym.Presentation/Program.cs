@@ -9,6 +9,9 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+LoadDotEnv(builder.Environment.ContentRootPath);
+builder.Configuration.AddEnvironmentVariables();
+
 //builder.Services.AddControllersWithViews(options =>
 //{
 //    var policy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
@@ -87,3 +90,28 @@ using (var scope = app.Services.CreateAsyncScope())
 }
 
 app.Run();
+
+static void LoadDotEnv(string contentRootPath)
+{
+    var filePath = Path.Combine(contentRootPath, ".env");
+
+    if (!File.Exists(filePath))
+        return;
+
+    foreach (var line in File.ReadLines(filePath))
+    {
+        var trimmedLine = line.Trim();
+
+        if (string.IsNullOrWhiteSpace(trimmedLine) || trimmedLine.StartsWith('#'))
+            continue;
+
+        var separatorIndex = trimmedLine.IndexOf('=');
+
+        if (separatorIndex <= 0)
+            continue;
+
+        var key = trimmedLine[..separatorIndex].Trim();
+        var value = trimmedLine[(separatorIndex + 1)..].Trim().Trim('"', '\'');
+        Environment.SetEnvironmentVariable(key, value);
+    }
+}
