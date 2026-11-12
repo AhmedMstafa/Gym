@@ -4,6 +4,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DisableBrowserRefresh>true</DisableBrowserRefresh>
+    <HotReloadEnabled>false</HotReloadEnabled>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +24,11 @@
   <ItemGroup>
     <ProjectReference Include="..\Gym.Business\Gym.Business.csproj" />
     <ProjectReference Include="..\Gym.DataAccess\Gym.DataAccess.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="App_Data\**" Watch="false" CopyToPublishDirectory="Never" />
+    <Content Update="wwwroot\images\members\**" Watch="false" />
   </ItemGroup>
 
 </Project>

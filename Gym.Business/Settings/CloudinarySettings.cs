@@ -10,7 +10,7 @@ public class CloudinarySettings
 
     /// <summary>
     /// When false, photos are stored under wwwroot instead of Cloudinary.
-    /// Local HTTP Development should keep this false.
+    /// Local HTTP Development can opt out through appsettings.Development.json.
     /// </summary>
     public bool Enabled { get; set; }
 }

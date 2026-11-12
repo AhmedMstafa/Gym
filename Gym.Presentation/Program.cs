@@ -3,14 +3,32 @@ using Gym.DataAccess.Data.Seeder;
 using Gym.DataAccess.DependencyInjection;
 using Gym.Business.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.FileProviders;
+using Gym.Business.Settings;
 using Gym.DataAccess.Entities.Identity;
-using Microsoft.AspNetCore.Mvc.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 LoadDotEnv(builder.Environment.ContentRootPath);
 builder.Configuration.AddEnvironmentVariables();
+
+const long maxUploadBytes = 100 * 1024 * 1024;
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = maxUploadBytes;
+    options.ValueLengthLimit = int.MaxValue;
+});
+builder.Services.Configure<KestrelServerOptions>(options =>
+{
+    options.Limits.MaxRequestBodySize = maxUploadBytes;
+});
+builder.Services.Configure<IISServerOptions>(options =>
+{
+    options.MaxRequestBodySize = maxUploadBytes;
+});
 
 //builder.Services.AddControllersWithViews(options =>
 //{
@@ -59,6 +77,17 @@ else
 {
     app.UseExceptionHandler("/Home/Error");
 }
+
+// Serves files created at runtime (e.g. local photo uploads).
+// MapStaticAssets only serves assets present in the build-time manifest.
+app.UseStaticFiles();
+
+var uploadsPath = LocalPhotoStorage.GetRootPath(app.Environment.ContentRootPath);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsPath),
+    RequestPath = LocalPhotoStorage.RequestPath
+});
 
 app.UseRouting();
 app.UseAuthentication();
