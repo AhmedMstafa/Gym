@@ -20,6 +20,8 @@ namespace Gym.Presentation.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [DisableRequestSizeLimit]
+        [RequestFormLimits(MultipartBodyLengthLimit = 100 * 1024 * 1024, ValueLengthLimit = int.MaxValue)]
         public async Task<IActionResult> Create(CreateMemberViewModel model, CancellationToken ct)
         {
             if (!ModelState.IsValid)
@@ -65,6 +67,8 @@ namespace Gym.Presentation.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [DisableRequestSizeLimit]
+        [RequestFormLimits(MultipartBodyLengthLimit = 100 * 1024 * 1024, ValueLengthLimit = int.MaxValue)]
         public async Task<IActionResult> Edit([FromRoute] int id, EditMemberViewModel editMemberViewModel, CancellationToken ct)
         {
             if (!ModelState.IsValid) return View(editMemberViewModel);

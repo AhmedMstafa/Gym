@@ -27,13 +27,16 @@ internal class PhotoService : IPhotoService
         _logger = logger;
         var settings = config.Value;
 
-        // Never call Cloudinary from local Development — the SDK can take down Kestrel.
-        if (!_environment.IsDevelopment() &&
+        // Opt-in only. Missing Enabled (or Development) always stores files on disk.
+        var canUseCloudinary =
             settings.Enabled &&
+            !_environment.IsDevelopment() &&
             !string.IsNullOrWhiteSpace(settings.CloudName) &&
             !string.IsNullOrWhiteSpace(settings.ApiKey) &&
             !string.IsNullOrWhiteSpace(settings.ApiSecret) &&
-            !settings.CloudName.Equals("your-cloud-name", StringComparison.OrdinalIgnoreCase))
+            !settings.CloudName.Equals("your-cloud-name", StringComparison.OrdinalIgnoreCase);
+
+        if (canUseCloudinary)
         {
             var account = new Account(settings.CloudName, settings.ApiKey, settings.ApiSecret);
             _cloudinary = new Cloudinary(account);
@@ -90,47 +93,38 @@ internal class PhotoService : IPhotoService
                         .Crop("fill")
                 };
 
-                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+                var uploadTask = _cloudinary.UploadAsync(uploadParams);
+                var timeoutTask = Task.Delay(TimeSpan.FromSeconds(20), cancellationToken);
+                var completed = await Task.WhenAny(uploadTask, timeoutTask);
 
-                if (uploadResult.Error == null)
+                if (completed == uploadTask)
                 {
-                    var secureUrl = uploadResult.SecureUrl?.ToString() ?? uploadResult.Url?.ToString();
-                    if (!string.IsNullOrWhiteSpace(secureUrl))
+                    var uploadResult = await uploadTask;
+                    if (uploadResult.Error == null)
                     {
-                        _logger.LogInformation("Photo uploaded to Cloudinary successfully: {Url}", secureUrl);
-                        return Result.Success(secureUrl);
+                        var secureUrl = uploadResult.SecureUrl?.ToString() ?? uploadResult.Url?.ToString();
+                        if (!string.IsNullOrWhiteSpace(secureUrl))
+                        {
+                            _logger.LogInformation("Photo uploaded to Cloudinary successfully: {Url}", secureUrl);
+                            return Result.Success(secureUrl);
+                        }
                     }
-                }
 
-                _logger.LogWarning(
-                    "Cloudinary upload failed: {Error}. Falling back to local storage.",
-                    uploadResult.Error?.Message ?? "No URL returned");
+                    _logger.LogWarning("Cloudinary upload failed: {Error}. Saving locally instead.",
+                        uploadResult.Error?.Message ?? "Cloudinary did not return an image URL.");
+                }
+                else
+                {
+                    _logger.LogWarning("Cloudinary upload timed out. Saving locally instead.");
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Cloudinary upload failed. Falling back to local storage.");
+                _logger.LogError(ex, "Cloudinary upload failed. Saving locally instead.");
             }
         }
 
-        try
-        {
-            var webRoot = _environment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            var uploadsFolder = Path.Combine(webRoot, "images", folder);
-            Directory.CreateDirectory(uploadsFolder);
-
-            var uniqueFileName = $"{Guid.NewGuid()}{extension}";
-            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-            await File.WriteAllBytesAsync(filePath, fileBytes, cancellationToken);
-
-            var relativeUrl = $"/images/{folder}/{uniqueFileName}";
-            _logger.LogInformation("Photo saved locally: {Url}", relativeUrl);
-            return Result.Success(relativeUrl);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to save photo locally.");
-            return Result.Failure<string>("Photo.LocalSaveFailed", "Could not save photo.");
-        }
+        return await SaveLocallyAsync(fileBytes, folder, extension, cancellationToken);
     }
 
     public async Task<Result> DeletePhotoAsync(string publicIdOrUrl, CancellationToken cancellationToken = default)
@@ -140,14 +134,13 @@ internal class PhotoService : IPhotoService
             return Result.Success();
         }
 
-        if (publicIdOrUrl.StartsWith("/images/", StringComparison.OrdinalIgnoreCase))
+        if (publicIdOrUrl.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase) ||
+            publicIdOrUrl.StartsWith("/images/", StringComparison.OrdinalIgnoreCase))
         {
             try
             {
-                var relativePath = publicIdOrUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
-                var webRoot = _environment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                var fullPath = Path.Combine(webRoot, relativePath);
-                if (File.Exists(fullPath))
+                var fullPath = ResolveLocalPhotoPath(publicIdOrUrl);
+                if (fullPath is not null && File.Exists(fullPath))
                 {
                     File.Delete(fullPath);
                 }
@@ -178,6 +171,50 @@ internal class PhotoService : IPhotoService
         }
 
         return Result.Success();
+    }
+
+    private async Task<Result<string>> SaveLocallyAsync(
+        byte[] fileBytes,
+        string folder,
+        string extension,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var uploadsFolder = Path.Combine(GetUploadsRoot(), folder);
+            Directory.CreateDirectory(uploadsFolder);
+
+            var uniqueFileName = $"{Guid.NewGuid()}{extension}";
+            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+            await File.WriteAllBytesAsync(filePath, fileBytes, cancellationToken);
+
+            var relativeUrl = $"/uploads/{folder}/{uniqueFileName}";
+            _logger.LogInformation("Photo saved locally: {Url}", relativeUrl);
+            return Result.Success(relativeUrl);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save photo locally.");
+            return Result.Failure<string>("Photo.LocalSaveFailed", "Could not save photo.");
+        }
+    }
+
+    private string GetUploadsRoot() => LocalPhotoStorage.GetRootPath(_environment.ContentRootPath);
+
+    private string GetWebRoot()
+        => _environment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+
+    private string? ResolveLocalPhotoPath(string url)
+    {
+        var relativePath = url.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+
+        if (url.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase))
+        {
+            var withoutPrefix = relativePath["uploads".Length..].TrimStart(Path.DirectorySeparatorChar);
+            return Path.GetFullPath(Path.Combine(GetUploadsRoot(), withoutPrefix));
+        }
+
+        return Path.GetFullPath(Path.Combine(GetWebRoot(), relativePath));
     }
 
     private static string ExtractPublicIdFromUrl(string url)

@@ -145,11 +145,21 @@ Cloudinary settings are configured under `CloudinarySettings`:
 ```json
 {
   "CloudinarySettings": {
+	"Enabled": true,
 	"CloudName": "your-cloud-name",
 	"ApiKey": "your-api-key",
 	"ApiSecret": "your-api-secret"
   }
 }
+```
+
+In production (for example Docker/Render), provide the values as environment variables so they override `appsettings.json`:
+
+```text
+CloudinarySettings__Enabled=true
+CloudinarySettings__CloudName=your-cloud-name
+CloudinarySettings__ApiKey=your-api-key
+CloudinarySettings__ApiSecret=your-api-secret
 ```
 
 Cloudinary can be disabled in development:
